@@ -6,7 +6,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -26,23 +25,32 @@ type coreInfo struct {
 
 const procInfoPath string = "/proc/stat"
 
-var wg = sync.WaitGroup{}
-
-func CoreLoad(loadChan chan float64) {
+func CoreLoad(loadChan chan []float64) {
 	var prevCoreInfo []coreInfo
 	var curCoreInfo []coreInfo
 
-	prevCoreInfo = ParseProcInfo()
-	time.Sleep(time.Second * 1)
 	curCoreInfo = ParseProcInfo()
-	wg.Add(1)
-	go func() {
-		loadAlgo(loadChan, prevCoreInfo[0], curCoreInfo[0])
-		wg.Done()
-	}()
+	time.Sleep(1 * time.Second)
+	for {
+		prevCoreInfo = curCoreInfo
+		curCoreInfo = ParseProcInfo()
+		go func() {
+			calcCoreLoad(loadChan, prevCoreInfo, curCoreInfo)
+		}()
+		time.Sleep(1 * time.Second)
+	}
 }
 
-func loadAlgo(loadChan chan float64, prevCoreInfo coreInfo, curCoreInfo coreInfo) {
+func calcCoreLoad(loadChan chan []float64, prevCoreInfo []coreInfo, curCoreInfo []coreInfo) {
+	var loads []float64
+	for i := 0; i < len(prevCoreInfo); i++ {
+		coreLoad := loadAlgo(prevCoreInfo[i], curCoreInfo[i])
+		loads = append(loads, coreLoad)
+	}
+	loadChan <- loads
+}
+
+func loadAlgo(prevCoreInfo coreInfo, curCoreInfo coreInfo) float64 {
 	prevIdle := prevCoreInfo.idle + prevCoreInfo.iowait
 	idle := curCoreInfo.idle + curCoreInfo.iowait
 
@@ -56,7 +64,7 @@ func loadAlgo(loadChan chan float64, prevCoreInfo coreInfo, curCoreInfo coreInfo
 	idled := idle - prevIdle
 
 	load := float64(totald-idled) / float64(totald)
-	loadChan <- load
+	return load
 }
 
 func ParseProcInfo() []coreInfo {
