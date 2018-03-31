@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 )
 
 type coreInfo struct {
@@ -22,18 +24,45 @@ type coreInfo struct {
 	guest_nice int
 }
 
-const procinfoPath string = "/proc/stat"
+const procInfoPath string = "/proc/stat"
 
-func NumCores() {}
+var wg = sync.WaitGroup{}
 
-func coreLoad() float64 {
-	return 0.0
+func CoreLoad(loadChan chan float64) {
+	var prevCoreInfo []coreInfo
+	var curCoreInfo []coreInfo
+
+	prevCoreInfo = ParseProcInfo()
+	time.Sleep(time.Second * 1)
+	curCoreInfo = ParseProcInfo()
+	wg.Add(1)
+	go func() {
+		loadAlgo(loadChan, prevCoreInfo[0], curCoreInfo[0])
+		wg.Done()
+	}()
 }
 
-func ParseProcinfo() []coreInfo {
+func loadAlgo(loadChan chan float64, prevCoreInfo coreInfo, curCoreInfo coreInfo) {
+	prevIdle := prevCoreInfo.idle + prevCoreInfo.iowait
+	idle := curCoreInfo.idle + curCoreInfo.iowait
+
+	prevNonIdle := prevCoreInfo.user + prevCoreInfo.nice + prevCoreInfo.system + prevCoreInfo.irq + prevCoreInfo.softirq + prevCoreInfo.steal
+	nonIdle := curCoreInfo.user + curCoreInfo.nice + curCoreInfo.system + curCoreInfo.irq + curCoreInfo.softirq + curCoreInfo.steal
+
+	prevTotal := prevIdle + prevNonIdle
+	total := idle + nonIdle
+
+	totald := total - prevTotal
+	idled := idle - prevIdle
+
+	load := float64(totald-idled) / float64(totald)
+	loadChan <- load
+}
+
+func ParseProcInfo() []coreInfo {
 	var cores []coreInfo
 
-	f, err := os.Open(procinfoPath)
+	f, err := os.Open(procInfoPath)
 	if err != nil {
 		log.Fatal(err)
 	}
