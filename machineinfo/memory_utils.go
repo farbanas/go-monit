@@ -12,25 +12,25 @@ import (
 
 const meminfoPath string = "/proc/meminfo"
 
-type memory struct {
-	total     int
-	used      int
-	free      int
-	swapTotal int
-	swapFree  int
-	swapUsed  int
+type Memory struct {
+	Total     int
+	Used      int
+	Free      int
+	SwapTotal int
+	SwapFree  int
+	SwapUsed  int
 }
 
-func MemAllocation() memory {
-	var mem memory = memory{}
+func MemAllocation() Memory {
+	var mem Memory = Memory{}
 
 	m := parseMeminfo()
-	mem.total = m["MemTotal"]
-	mem.free = m["MemFree"]
-	mem.used = m["MemTotal"] - m["MemFree"]
-	mem.swapTotal = m["SwapTotal"]
-	mem.swapFree = m["SwapFree"]
-	mem.swapUsed = m["SwapTotal"] - m["SwapFree"]
+	mem.Total = m["MemTotal"]
+	mem.Free = m["MemFree"]
+	mem.Used = m["MemTotal"] - m["MemFree"]
+	mem.SwapTotal = m["SwapTotal"]
+	mem.SwapFree = m["SwapFree"]
+	mem.SwapUsed = m["SwapTotal"] - m["SwapFree"]
 
 	return mem
 }
@@ -60,18 +60,31 @@ func parseMeminfo() map[string]int {
 	return m
 }
 
+func (mem Memory) MemFormat() map[string]string {
+	var memList map[string]string = make(map[string]string, 6)
+
+	memList["Total"] = ConvertKilobytes(float64(mem.Total))
+	memList["Used"] = ConvertKilobytes(float64(mem.Used))
+	memList["Free"] = ConvertKilobytes(float64(mem.Free))
+	memList["SwapTotal"] = ConvertKilobytes(float64(mem.SwapTotal))
+	memList["SwapFree"] = ConvertKilobytes(float64(mem.SwapFree))
+	memList["SwapUsed"] = ConvertKilobytes(float64(mem.SwapUsed))
+
+	return memList
+}
+
 func ConvertKilobytes(kb float64) string {
 	var size float64
 	var sizeName string
 	if kb < 1024 {
 		size = kb
-		sizeName = "kB"
+		sizeName = "KB"
 	} else if kb > 1024 && kb < math.Pow(1024, 2) {
 		size = kb / 1024
-		sizeName = "mB"
+		sizeName = "MB"
 	} else {
 		size = kb / math.Pow(1024, 2)
-		sizeName = "gB"
+		sizeName = "GB"
 	}
 	return fmt.Sprintf("%.2f %s", size, sizeName)
 }

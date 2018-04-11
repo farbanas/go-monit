@@ -1,39 +1,45 @@
 package main
 
 import (
-	"fmt"
-	"sync"
+	"log"
+	"net/http"
+	"time"
 
 	"git.vingd.com/v-lab/go-monit/machineinfo"
 )
 
-var wg = sync.WaitGroup{}
+var Loads []float64
 
 func main() {
 	loadChan := make(chan []float64)
 
-	go machineinfo.CoreLoad(loadChan)
-	wg.Add(1)
-	go func() {
-		for {
-			loads := <-loadChan
-			for i, load := range loads {
-				fmt.Printf("Core %d load: %.2f%%\n", i, load*100)
-			}
-		}
-		wg.Done()
-	}()
+	go coreLoadFeed(loadChan)
+	go collectLoad(loadChan)
 
-	wg.Wait()
-
-	//http.HandleFunc("/", overview)
-	//log.Fatal(http.ListenAndServe(":8080", nil))
+	http.HandleFunc("/", overviewHandler)
+	http.HandleFunc("/webhooks/slack/monitor", slackMonitorHandler)
+	http.HandleFunc("/webhooks/load", loadSummaryHandler)
+	http.HandleFunc("/webhooks/memory", memoryUsageHandler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-/*
-func overview(w http.ResponseWriter, r *http.Request) {
-	var loadChan chan float64 = make(chan float64, 5)
-	machineinfo.CoreLoad(loadChan)
-	return <-loadChan
+func coreLoadFeed(loadChan chan []float64) {
+	var prevCoreInfo []machineinfo.CoreInfo
+	var curCoreInfo []machineinfo.CoreInfo
+
+	curCoreInfo = machineinfo.ParseProcInfo()
+	time.Sleep(1 * time.Second)
+	for _ = range time.Tick(1 * time.Second) {
+		go func() {
+			prevCoreInfo = curCoreInfo
+			curCoreInfo = machineinfo.ParseProcInfo()
+			loadChan <- machineinfo.CoreLoad(prevCoreInfo, curCoreInfo)
+		}()
+	}
 }
-*/
+
+func collectLoad(loadChan) {
+	for {
+		Loads <- loadChan
+	}
+}

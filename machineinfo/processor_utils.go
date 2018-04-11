@@ -6,10 +6,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
-type coreInfo struct {
+type CoreInfo struct {
 	coreNum    int
 	user       int
 	nice       int
@@ -25,32 +24,16 @@ type coreInfo struct {
 
 const procInfoPath string = "/proc/stat"
 
-func CoreLoad(loadChan chan []float64) {
-	var prevCoreInfo []coreInfo
-	var curCoreInfo []coreInfo
-
-	curCoreInfo = ParseProcInfo()
-	time.Sleep(1 * time.Second)
-	for {
-		prevCoreInfo = curCoreInfo
-		curCoreInfo = ParseProcInfo()
-		go func() {
-			calcCoreLoad(loadChan, prevCoreInfo, curCoreInfo)
-		}()
-		time.Sleep(1 * time.Second)
-	}
-}
-
-func calcCoreLoad(loadChan chan []float64, prevCoreInfo []coreInfo, curCoreInfo []coreInfo) {
+func CoreLoad(prevCoreInfo []CoreInfo, curCoreInfo []CoreInfo) []float64 {
 	var loads []float64
 	for i := 0; i < len(prevCoreInfo); i++ {
 		coreLoad := loadAlgo(prevCoreInfo[i], curCoreInfo[i])
 		loads = append(loads, coreLoad)
 	}
-	loadChan <- loads
+	return loads
 }
 
-func loadAlgo(prevCoreInfo coreInfo, curCoreInfo coreInfo) float64 {
+func loadAlgo(prevCoreInfo CoreInfo, curCoreInfo CoreInfo) float64 {
 	prevIdle := prevCoreInfo.idle + prevCoreInfo.iowait
 	idle := curCoreInfo.idle + curCoreInfo.iowait
 
@@ -67,8 +50,8 @@ func loadAlgo(prevCoreInfo coreInfo, curCoreInfo coreInfo) float64 {
 	return load
 }
 
-func ParseProcInfo() []coreInfo {
-	var cores []coreInfo
+func ParseProcInfo() []CoreInfo {
+	var cores []CoreInfo
 
 	f, err := os.Open(procInfoPath)
 	if err != nil {
@@ -86,7 +69,7 @@ func ParseProcInfo() []coreInfo {
 	return cores
 }
 
-func parseCpuLine(line []string) coreInfo {
+func parseCpuLine(line []string) CoreInfo {
 	var intList []int
 
 	line[0] = strings.TrimLeft(line[0], "cpu ")
@@ -107,11 +90,11 @@ func parseCpuLine(line []string) coreInfo {
 	return fillCoreInfo(intList)
 }
 
-func fillCoreInfo(intList []int) coreInfo {
-	var coreInfo coreInfo = coreInfo{
+func fillCoreInfo(intList []int) CoreInfo {
+	var CoreInfo CoreInfo = CoreInfo{
 		intList[0], intList[1], intList[2], intList[3],
 		intList[4], intList[5], intList[6], intList[7],
 		intList[8], intList[9], intList[10]}
 
-	return coreInfo
+	return CoreInfo
 }
