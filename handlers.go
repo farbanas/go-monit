@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -39,7 +40,13 @@ func slackMonitorHandler(w http.ResponseWriter, r *http.Request) {
 
 	var jsonMap map[string]interface{}
 
-	fmt.Println(json.NewDecoder(r.Body).Decode(jsonMap))
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(body)
+	jsonMap["text"] = "This is test"
+	json.NewEncoder(w).Encode(jsonMap)
 }
 
 func memoryUsageHandler(w http.ResponseWriter, r *http.Request) {
