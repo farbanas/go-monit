@@ -28,7 +28,7 @@ func overviewHandler(w http.ResponseWriter, r *http.Request) {
 		TotalLoad float64
 		Loads     []float64
 		Mem       map[string]string
-	}{totalLoad, loadsPercentage, mem.MemFormat()})
+	}{totalLoad, loadsPercentage, mem.FormatToMap()})
 }
 
 func slackMonitorHandler(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +47,7 @@ func memoryUsageHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "This endpoint does not accept methods other than GET!")
 	}
 	mem := machineinfo.MemAllocation()
-	json.NewEncoder(w).Encode(mem.MemFormat())
+	json.NewEncoder(w).Encode(mem.FormatToMap())
 }
 
 func loadSummaryHandler(w http.ResponseWriter, r *http.Request) {
