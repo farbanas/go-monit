@@ -38,7 +38,7 @@ func slackMonitorHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var jsonMap map[string]string
+	var jsonMap map[string]string = make(map[string]string)
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
