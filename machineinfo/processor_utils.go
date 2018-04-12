@@ -24,9 +24,7 @@ type CoreInfo struct {
 
 const procInfoPath string = "/proc/stat"
 
-func (coreInfo []CoreInfo) FormatToMap() {
-
-}
+// func (coreInfo *[]CoreInfo) FormatToMap() {}
 
 func CoreLoad(prevCoreInfo []CoreInfo, curCoreInfo []CoreInfo) []float64 {
 	var loads []float64
