@@ -1,0 +1,18 @@
+before_script:
+  - . /home/git-update/.ci/deploy/common
+
+.deploy: &deploy-template
+  stage: deploy
+  environment:
+    name: $DEPLOY_ENV
+  only:
+    - production
+    - sandbox
+  variables:
+  script:
+    - git_deploy
+    - set_settings
+
+Deploy to hetz-03:
+  <<: *deploy-template
+  tags: [ hetz-03 ]
