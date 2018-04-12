@@ -38,8 +38,8 @@ func coreLoadFeed(loadChan chan []float64) {
 	}
 }
 
-func collectLoad(loadChan) {
+func collectLoad(loadChan chan []float64) {
 	for {
-		Loads <- loadChan
+		Loads = <-loadChan
 	}
 }
