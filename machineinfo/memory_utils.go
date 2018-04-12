@@ -60,7 +60,7 @@ func parseMeminfo() map[string]int {
 	return m
 }
 
-func (mem Memory) MemFormat() map[string]string {
+func (mem Memory) FormatToMap() map[string]string {
 	var memList map[string]string = make(map[string]string, 6)
 
 	memList["Total"] = ConvertKilobytes(float64(mem.Total))
