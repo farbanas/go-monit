@@ -12,22 +12,23 @@ import (
 
 func overviewHandler(w http.ResponseWriter, r *http.Request) {
 	loadsPercentage := Loads
+	var loadsBars []string
 	for i, _ := range loadsPercentage {
-		loadsPercentage[i] *= 100
+		loadsBars = append(loadsBars, DisplayPercentageBar(int(loadsPercentage[i]*100)))
 	}
-	totalLoad := loadsPercentage[0]
-	loadsPercentage = loadsPercentage[1:]
+	mem := machineinfo.MemAllocation()
+	memBar := DisplayPercentageBar(int((float64(mem.Used) / float64(mem.Total)) * 100))
+
 	t, err := template.ParseFiles("templates/overview.html")
 	if err != nil {
 		log.Fatal(err)
 	}
-	mem := machineinfo.MemAllocation()
 
 	t.Execute(w, struct {
-		TotalLoad float64
-		Loads     []float64
-		Mem       map[string]string
-	}{totalLoad, loadsPercentage, mem.FormatToMap()})
+		TotalLoad string
+		Loads     []string
+		Mem       string
+	}{loadsBars[0], loadsBars[1:], memBar})
 }
 
 func slackMonitorHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +47,7 @@ func slackMonitorHandler(w http.ResponseWriter, r *http.Request) {
 		text := r.Form.Get("text")
 	*/
 	mem := machineinfo.MemAllocation()
-	memPercentage := int(mem.Used / mem.Total)
+	memPercentage := int((mem.Used / mem.Total) * 100)
 
 	slackMsg["attachments"] = make([]map[string]string, 2)
 	slackMsg["attachments"][0] = map[string]string{"text": fmt.Sprintf("MEM: %s", DisplayPercentageBar(memPercentage))}

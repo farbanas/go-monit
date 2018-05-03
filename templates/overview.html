@@ -2,21 +2,13 @@
     <head></head>
     <body>
 	<h2>Core loads</h2>
-	<h3>Total load: {{ printf "%5.2f" .TotalLoad }}%</h3>
+	<h3>Total load: {{ .TotalLoad }}</h3>
 	<ul>
 		{{ range $number, $load := .Loads }} 
-		<li>Core {{ $number }}: {{ printf "%5.2f" $load }}%</li>
+		<li>Core {{ $number }}: {{ $load }}</li>
 		{{ end }}
 	</ul>
 
-	<h2>Memory</h2>
-	<ul>
-		<li>Total: {{ .Mem.Total }}</li>
-		<li>Free: {{ .Mem.Free }}</li>
-		<li>Used: {{ .Mem.Used }}</li>
-		<li>Swap Total: {{ .Mem.SwapTotal }}</li>
-		<li>Swap Free: {{ .Mem.SwapFree }}</li>
-		<li>Swap Used: {{ .Mem.SwapUsed }}</li>
-	</ul>
+	<h3>MEM: {{ .Mem }} </h3>
     </body>
 </html>
