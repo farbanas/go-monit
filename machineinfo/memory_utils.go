@@ -26,8 +26,8 @@ func MemAllocation() Memory {
 
 	m := parseMeminfo()
 	mem.Total = m["MemTotal"]
-	mem.Free = m["MemFree"]
-	mem.Used = m["MemTotal"] - m["MemFree"]
+	mem.Free = m["MemAvailable"]
+	mem.Used = m["MemTotal"] - m["MemAvailable"]
 	mem.SwapTotal = m["SwapTotal"]
 	mem.SwapFree = m["SwapFree"]
 	mem.SwapUsed = m["SwapTotal"] - m["SwapFree"]

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"git.vingd.com/v-lab/go-monit/machineinfo"
+	"github.com/farbanas/go-monit/machineinfo"
 )
 
 var Loads []float64
@@ -22,7 +22,7 @@ func main() {
 	http.HandleFunc("/webhooks/slack/monitor", slackMonitorHandler)
 	http.HandleFunc("/webhooks/load", loadSummaryHandler)
 	http.HandleFunc("/webhooks/memory", memoryUsageHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":10000", nil))
 }
 
 func coreLoadFeed(loadChan chan []float64) {
@@ -50,9 +50,9 @@ func FormatLoadToMap() map[string]string {
 	var loadMap map[string]string = make(map[string]string)
 	for i, load := range Loads {
 		if i == 0 {
-			loadMap["Total"] = fmt.Sprintf("%.2f", load)
+			loadMap["Total"] = fmt.Sprintf("%.2f%%", load*100)
 		} else {
-			loadMap[strconv.Itoa(i-1)] = fmt.Sprintf("%.2f", load)
+			loadMap[strconv.Itoa(i-1)] = fmt.Sprintf("%.2f%%", load*100)
 		}
 	}
 	return loadMap

@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"git.vingd.com/v-lab/go-monit/machineinfo"
+	"github.com/farbanas/go-monit/machineinfo"
 )
 
 func overviewHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,11 +46,11 @@ func slackMonitorHandler(w http.ResponseWriter, r *http.Request) {
 		text := r.Form.Get("text")
 	*/
 	mem := machineinfo.MemAllocation()
-	memMap := mem.FormatToMap()
+	memPercentage := int(mem.Used / mem.Total)
 
 	slackMsg["attachments"] = make([]map[string]string, 2)
-	slackMsg["attachments"][0] = map[string]string{"title": "Memory", "text": fmt.Sprintf("Total: %s, Free: %s", memMap["Total"], memMap["Free"])}
-	slackMsg["attachments"][1] = map[string]string{"title": "CPU", "text": fmt.Sprintf("%.2f", Loads[0])}
+	slackMsg["attachments"][0] = map[string]string{"text": fmt.Sprintf("MEM: %s", DisplayPercentageBar(memPercentage))}
+	slackMsg["attachments"][1] = map[string]string{"text": fmt.Sprintf("CPU: %s", DisplayPercentageBar(int(Loads[0]*100)))}
 
 	json.NewEncoder(w).Encode(slackMsg)
 }
