@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 
 	"git.vingd.com/v-lab/go-monit/machineinfo"
 )
@@ -38,15 +36,23 @@ func slackMonitorHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var jsonMap map[string]string = make(map[string]string)
+	w.Header().Set("Content-Type", "application/json")
 
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(string(body))
-	jsonMap["text"] = "This is test"
-	json.NewEncoder(w).Encode(jsonMap)
+	slackMsg := make(map[string][]map[string]string)
+
+	/*
+		r.ParseForm()
+		command := r.Form.Get("command")
+		text := r.Form.Get("text")
+	*/
+	mem := machineinfo.MemAllocation()
+	memMap := mem.FormatToMap()
+
+	slackMsg["attachments"] = make([]map[string]string, 2)
+	slackMsg["attachments"][0] = map[string]string{"title": "Memory", "text": fmt.Sprintf("Total: %s, Free: %s", memMap["Total"], memMap["Free"])}
+	slackMsg["attachments"][1] = map[string]string{"title": "CPU", "text": fmt.Sprintf("%.2f", Loads[0])}
+
+	json.NewEncoder(w).Encode(slackMsg)
 }
 
 func memoryUsageHandler(w http.ResponseWriter, r *http.Request) {
@@ -62,13 +68,6 @@ func loadSummaryHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "This endpoint does not accept methods other than GET!")
 	}
 
-	var loadMap map[string]string = make(map[string]string)
-	for i, load := range Loads {
-		if i == 0 {
-			loadMap["Total"] = fmt.Sprintf("%.2f", load)
-		} else {
-			loadMap[strconv.Itoa(i)] = fmt.Sprintf("%.2f", load)
-		}
-	}
+	loadMap := FormatLoadToMap()
 	json.NewEncoder(w).Encode(loadMap)
 }

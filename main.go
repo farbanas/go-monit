@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"git.vingd.com/v-lab/go-monit/machineinfo"
@@ -42,4 +44,16 @@ func collectLoad(loadChan chan []float64) {
 	for {
 		Loads = <-loadChan
 	}
+}
+
+func FormatLoadToMap() map[string]string {
+	var loadMap map[string]string = make(map[string]string)
+	for i, load := range Loads {
+		if i == 0 {
+			loadMap["Total"] = fmt.Sprintf("%.2f", load)
+		} else {
+			loadMap[strconv.Itoa(i-1)] = fmt.Sprintf("%.2f", load)
+		}
+	}
+	return loadMap
 }

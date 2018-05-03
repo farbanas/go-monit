@@ -24,7 +24,17 @@ type CoreInfo struct {
 
 const procInfoPath string = "/proc/stat"
 
-// func (coreInfo *[]CoreInfo) FormatToMap() {}
+func FormatLoadToMap() map[string][string] {
+	var loadMap map[string]string = make(map[string]string)
+	for i, load := range Loads {
+		if i == 0 {
+			loadMap["Total"] = fmt.Sprintf("%.2f", load)
+		} else {
+			loadMap[strconv.Itoa(i-1)] = fmt.Sprintf("%.2f", load)
+		}
+	}
+	return loadMap
+}
 
 func CoreLoad(prevCoreInfo []CoreInfo, curCoreInfo []CoreInfo) []float64 {
 	var loads []float64
@@ -34,6 +44,7 @@ func CoreLoad(prevCoreInfo []CoreInfo, curCoreInfo []CoreInfo) []float64 {
 	}
 	return loads
 }
+
 
 func loadAlgo(prevCoreInfo CoreInfo, curCoreInfo CoreInfo) float64 {
 	prevIdle := prevCoreInfo.idle + prevCoreInfo.iowait
