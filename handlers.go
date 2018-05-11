@@ -47,10 +47,10 @@ func slackMonitorHandler(w http.ResponseWriter, r *http.Request) {
 		text := r.Form.Get("text")
 	*/
 	mem := machineinfo.MemAllocation()
-	memPercentage := int((mem.Used / mem.Total) * 100)
+	memBar := DisplayPercentageBar(int((float64(mem.Used) / float64(mem.Total)) * 100))
 
 	slackMsg["attachments"] = make([]map[string]string, 2)
-	slackMsg["attachments"][0] = map[string]string{"text": fmt.Sprintf("MEM: %s", DisplayPercentageBar(memPercentage))}
+	slackMsg["attachments"][0] = map[string]string{"text": fmt.Sprintf("MEM: %s", memBar)}
 	slackMsg["attachments"][1] = map[string]string{"text": fmt.Sprintf("CPU: %s", DisplayPercentageBar(int(Loads[0]*100)))}
 
 	json.NewEncoder(w).Encode(slackMsg)
