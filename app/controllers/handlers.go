@@ -1,4 +1,4 @@
-package main
+package controllers
 
 import (
 	"encoding/json"
@@ -7,17 +7,18 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/farbanas/go-monit/machineinfo"
+	"github.com/farbanas/go-monit/app/utils/machineinfo"
+	"github.com/farbanas/go-monit/app/utils"
 )
 
-func overviewHandler(w http.ResponseWriter, r *http.Request) {
-	loadsPercentage := Loads
+func OverviewHandler(w http.ResponseWriter, r *http.Request, loads []float64) {
+	loadsPercentage := loads
 	var loadsBars []string
-	for i, _ := range loadsPercentage {
-		loadsBars = append(loadsBars, DisplayPercentageBar(int(loadsPercentage[i]*100)))
+	for i := range loadsPercentage {
+		loadsBars = append(loadsBars, utils.DisplayPercentageBar(int(loadsPercentage[i]*100)))
 	}
 	mem := machineinfo.MemAllocation()
-	memBar := DisplayPercentageBar(int((float64(mem.Used) / float64(mem.Total)) * 100))
+	memBar := utils.DisplayPercentageBar(int((float64(mem.Used) / float64(mem.Total)) * 100))
 
 	t, err := template.ParseFiles("templates/overview.html")
 	if err != nil {
@@ -31,7 +32,7 @@ func overviewHandler(w http.ResponseWriter, r *http.Request) {
 	}{loadsBars[0], loadsBars[1:], memBar})
 }
 
-func slackMonitorHandler(w http.ResponseWriter, r *http.Request) {
+func SlackMonitorHandler(w http.ResponseWriter, r *http.Request, loads []float64) {
 	if r.Method != "POST" {
 		fmt.Fprintf(w, "This endpoint does not accept methods other than POST!")
 	}
@@ -47,16 +48,16 @@ func slackMonitorHandler(w http.ResponseWriter, r *http.Request) {
 		text := r.Form.Get("text")
 	*/
 	mem := machineinfo.MemAllocation()
-	memBar := DisplayPercentageBar(int((float64(mem.Used) / float64(mem.Total)) * 100))
+	memBar := utils.DisplayPercentageBar(int((float64(mem.Used) / float64(mem.Total)) * 100))
 
 	slackMsg["attachments"] = make([]map[string]string, 2)
 	slackMsg["attachments"][0] = map[string]string{"text": fmt.Sprintf("MEM: %s", memBar)}
-	slackMsg["attachments"][1] = map[string]string{"text": fmt.Sprintf("CPU: %s", DisplayPercentageBar(int(Loads[0]*100)))}
+	slackMsg["attachments"][1] = map[string]string{"text": fmt.Sprintf("CPU: %s", utils.DisplayPercentageBar(int(loads[0]*100)))}
 
 	json.NewEncoder(w).Encode(slackMsg)
 }
 
-func memoryUsageHandler(w http.ResponseWriter, r *http.Request) {
+func MemoryUsageHandler(w http.ResponseWriter, r *http.Request, loads []float64) {
 	if r.Method != "GET" {
 		fmt.Fprintf(w, "This endpoint does not accept methods other than GET!")
 	}
@@ -64,11 +65,11 @@ func memoryUsageHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(mem.FormatToMap())
 }
 
-func loadSummaryHandler(w http.ResponseWriter, r *http.Request) {
+func LoadSummaryHandler(w http.ResponseWriter, r *http.Request, loads []float64) {
 	if r.Method != "GET" {
 		fmt.Fprintf(w, "This endpoint does not accept methods other than GET!")
 	}
 
-	loadMap := FormatLoadToMap()
+	loadMap := utils.FormatLoadToMap(loads)
 	json.NewEncoder(w).Encode(loadMap)
 }

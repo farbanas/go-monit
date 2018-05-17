@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
-	"github.com/farbanas/go-monit/machineinfo"
+	"github.com/farbanas/go-monit/app/controllers"
+	"github.com/farbanas/go-monit/app/utils/machineinfo"
 )
-
-var Loads []float64
 
 func main() {
 	loadChan := make(chan []float64)
@@ -18,10 +16,11 @@ func main() {
 	go coreLoadFeed(loadChan)
 	go collectLoad(loadChan)
 
-	http.HandleFunc("/", overviewHandler)
-	http.HandleFunc("/webhooks/slack/monitor", slackMonitorHandler)
-	http.HandleFunc("/webhooks/load", loadSummaryHandler)
-	http.HandleFunc("/webhooks/memory", memoryUsageHandler)
+	http.HandleFunc("/", controllers.OverviewHandler)
+	http.HandleFunc("/webhooks/slack/monitor", controllers.SlackMonitorHandler)
+	http.HandleFunc("/webhooks/load", controllers.LoadSummaryHandler)
+	http.HandleFunc("/webhooks/memory", controllers.MemoryUsageHandler)
+
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
 
@@ -31,7 +30,7 @@ func coreLoadFeed(loadChan chan []float64) {
 
 	curCoreInfo = machineinfo.ParseProcInfo()
 	time.Sleep(1 * time.Second)
-	for _ = range time.Tick(1 * time.Second) {
+	for range time.Tick(1 * time.Second) {
 		go func() {
 			prevCoreInfo = curCoreInfo
 			curCoreInfo = machineinfo.ParseProcInfo()
@@ -42,18 +41,7 @@ func coreLoadFeed(loadChan chan []float64) {
 
 func collectLoad(loadChan chan []float64) {
 	for {
-		Loads = <-loadChan
+		loads := <-loadChan
+		fmt.Println(loads)
 	}
-}
-
-func FormatLoadToMap() map[string]string {
-	var loadMap map[string]string = make(map[string]string)
-	for i, load := range Loads {
-		if i == 0 {
-			loadMap["Total"] = fmt.Sprintf("%.2f%%", load*100)
-		} else {
-			loadMap[strconv.Itoa(i-1)] = fmt.Sprintf("%.2f%%", load*100)
-		}
-	}
-	return loadMap
 }

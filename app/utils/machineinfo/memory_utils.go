@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const meminfoPath string = "/proc/meminfo"
+const meminfoPath = "/proc/meminfo"
 
 type Memory struct {
 	Total     int
@@ -22,7 +22,7 @@ type Memory struct {
 }
 
 func MemAllocation() Memory {
-	var mem Memory = Memory{}
+	var mem = Memory{}
 
 	m := parseMeminfo()
 	mem.Total = m["MemTotal"]
@@ -36,7 +36,7 @@ func MemAllocation() Memory {
 }
 
 func parseMeminfo() map[string]int {
-	var m map[string]int = make(map[string]int)
+	var m = make(map[string]int)
 
 	meminfoFile, err := os.Open(meminfoPath)
 	if err != nil {
@@ -61,7 +61,7 @@ func parseMeminfo() map[string]int {
 }
 
 func (mem Memory) FormatToMap() map[string]string {
-	var memList map[string]string = make(map[string]string, 6)
+	var memList = make(map[string]string, 6)
 
 	memList["Total"] = ConvertKilobytes(float64(mem.Total))
 	memList["Used"] = ConvertKilobytes(float64(mem.Used))
