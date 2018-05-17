@@ -3,7 +3,15 @@ package utils
 import (
 	"fmt"
 	"strconv"
+	"github.com/farbanas/go-monit/app/utils/machineinfo"
+	"time"
 )
+
+type ComputerInfo struct {
+	LoadChan chan []float64
+}
+
+var Info = ComputerInfo{make(chan []float64, 5)}
 
 func DisplayPercentageBar(percentage int) string {
 	poundsNum := int(percentage / 5)
@@ -30,4 +38,21 @@ func FormatLoadToMap(loads []float64) map[string]string {
 		}
 	}
 	return loadMap
+}
+
+func (info ComputerInfo) CoreLoadFeed() {
+	var prevCoreInfo []machineinfo.CoreInfo
+	var curCoreInfo []machineinfo.CoreInfo
+
+	curCoreInfo = machineinfo.ParseProcInfo()
+	time.Sleep(1 * time.Second)
+	for range time.Tick(1 * time.Second) {
+		prevCoreInfo = curCoreInfo
+		curCoreInfo = machineinfo.ParseProcInfo()
+		info.LoadChan <- machineinfo.CoreLoad(prevCoreInfo, curCoreInfo)
+	}
+}
+
+func Init() {
+	go Info.CoreLoadFeed()
 }
