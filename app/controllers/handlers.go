@@ -37,6 +37,7 @@ func Overview(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 func SlackMonitor(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	if r.Method != "POST" {
 		fmt.Fprintf(w, "This endpoint does not accept methods other than POST!")
+		return
 	}
 	defer r.Body.Close()
 
@@ -70,6 +71,7 @@ func SlackMonitor(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 func MemoryUsage(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	if r.Method != "GET" {
 		fmt.Fprintf(w, "This endpoint does not accept methods other than GET!")
+		return
 	}
 	mem := machineinfo.MemAllocation()
 	json.NewEncoder(w).Encode(mem.FormatToMap())
@@ -78,6 +80,7 @@ func MemoryUsage(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 func LoadSummary(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	if r.Method != "GET" {
 		fmt.Fprintf(w, "This endpoint does not accept methods other than GET!")
+		return
 	}
 
 	loads := <- utils.Info.LoadChan
@@ -88,6 +91,7 @@ func LoadSummary(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 func ProcessStatus(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	if r.Method != "GET" {
 		fmt.Fprintf(w, "This endpoint does not accept methods other than GET!")
+		return
 	}
 
 	processName := p.ByName("process")
