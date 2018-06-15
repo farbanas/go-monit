@@ -10,10 +10,10 @@ func Init() *httprouter.Router {
 	router := httprouter.New()
 
 	router.GET("/", handlerwrapper.HandleFunc(controllers.Overview))
-	router.GET("/webhooks/slack/monitor", handlerwrapper.HandleFunc(controllers.SlackMonitor))
-	router.GET("/webhooks/load", handlerwrapper.HandleFunc(controllers.LoadSummary))
-	router.GET("/webhooks/memory", handlerwrapper.HandleFunc(controllers.MemoryUsage))
-	router.GET("/webhooks/process/:process", handlerwrapper.HandleFunc(controllers.ProcessStatus))
+	router.POST("/webhooks/slack/monitor", handlerwrapper.HandleFunc(controllers.SlackMonitor))
+	router.POST("/webhooks/load", handlerwrapper.HandleFunc(controllers.LoadSummary))
+	router.POST("/webhooks/memory", handlerwrapper.HandleFunc(controllers.MemoryUsage))
+	router.POST("/webhooks/process/:process", handlerwrapper.HandleFunc(controllers.ProcessStatus))
 
 	return router
 }
