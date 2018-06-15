@@ -13,6 +13,7 @@ func Init() *httprouter.Router {
 	router.GET("/webhooks/slack/monitor", handlerwrapper.HandleFunc(controllers.SlackMonitor))
 	router.GET("/webhooks/load", handlerwrapper.HandleFunc(controllers.LoadSummary))
 	router.GET("/webhooks/memory", handlerwrapper.HandleFunc(controllers.MemoryUsage))
+	router.GET("/webhooks/process/:process", handlerwrapper.HandleFunc(controllers.ProcessStatus))
 
 	return router
 }
